@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+option csharp_namespace = "BenchRestoration.Agent.Proto";
+
+package BenchRestoration.Agent;
+
+service AgentService {
+    // SQL operations
+    rpc TestConnection (TestConnectionRequest) returns (TestConnectionResponse);
+    rpc ListInstances (ListInstancesRequest) returns (ListInstancesResponse);
+    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse);
+    rpc DropDatabase (DropDatabaseRequest) returns (DropDatabaseResponse);
+
+    // Backup operations
+    rpc SearchBackups (SearchBackupsRequest) returns (SearchBackupsResponse);
+    rpc CopyBackup (CopyBackupRequest) returns (CopyBackupResponse);
+
+    // Restore operations
+    rpc RestoreDatabase (RestoreRequest) returns (RestoreResponse);
+    rpc VerifyIntegrity (VerifyIntegrityRequest) returns (VerifyIntegrityResponse);
+
+    // Network operations
+    rpc ConnectNetwork (ConnectNetworkRequest) returns (ConnectNetworkResponse);
+    rpc ProbeServerDrive (ProbeServerDriveRequest) returns (ProbeServerDriveResponse);
+
+    // Health
+    rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message TestConnectionRequest {
+    string server_name = 1;
+    string instance_name = 2;
+    string username = 3;
+    string password = 4;
+}
+
+message TestConnectionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ListInstancesRequest {
+    string server_name = 1;
+    string username = 2;
+    string password = 3;
+}
+
+message InstanceInfo {
+    string name = 1;
+    string display_name = 2;
+}
+
+message ListInstancesResponse {
+    repeated InstanceInfo instances = 1;
+}
+
+message ListDatabasesRequest {
+    string server_name = 1;
+    string instance_name = 2;
+    string username = 3;
+    string password = 4;
+}
+
+message DatabaseInfo {
+    string name = 1;
+    int64 size_kb = 2;
+    string last_backup_date = 3;
+}
+
+message ListDatabasesResponse {
+    repeated DatabaseInfo databases = 1;
+}
+
+message DropDatabaseRequest {
+    string server_name = 1;
+    string instance_name = 2;
+    string username = 3;
+    string password = 4;
+    repeated string database_names = 5;
+}
+
+message DropDatabaseResponse {
+    int32 success_count = 1;
+    int32 fail_count = 2;
+    repeated string messages = 3;
+}
+
+message SearchBackupsRequest {
+    string database_name = 1;
+    repeated string backup_sources = 2;
+    string network_username = 3;
+    string network_password = 4;
+}
+
+message BackupInfo {
+    string name = 1;
+    string file_path = 2;
+    int64 size_kb = 3;
+    string last_backup_date = 4;
+}
+
+message SearchBackupsResponse {
+    repeated BackupInfo backups = 1;
+    repeated string logs = 2;
+}
+
+message CopyBackupRequest {
+    string source_path = 1;
+    string destination_unc = 2;
+    string server_name = 3;
+    string network_username = 4;
+    string network_password = 5;
+}
+
+message CopyBackupResponse {
+    bool success = 1;
+    string local_path = 2;
+    string message = 3;
+}
+
+message RestoreRequest {
+    string server_name = 1;
+    string instance_name = 2;
+    string username = 3;
+    string password = 4;
+    string database_name = 5;
+    string backup_file_path = 6;
+    string restore_path = 7;
+    bool with_recovery = 8;
+}
+
+message RestoreResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message VerifyIntegrityRequest {
+    string server_name = 1;
+    string instance_name = 2;
+    string username = 3;
+    string password = 4;
+    string backup_file_path = 5;
+}
+
+message VerifyIntegrityResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ConnectNetworkRequest {
+    string path = 1;
+    string username = 2;
+    string password = 3;
+}
+
+message ConnectNetworkResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ProbeServerDriveRequest {
+    string server_name = 1;
+}
+
+message ProbeServerDriveResponse {
+    string drive_letter = 1;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    bool healthy = 1;
+    string message = 2;
+}

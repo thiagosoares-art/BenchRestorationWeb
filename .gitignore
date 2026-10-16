@@ -1,0 +1,19 @@
+# Build outputs
+**/bin/
+**/obj/
+**/wwwroot/
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+
+# Local config / secrets
+.env
+.env.local
+BenchRestorationWeb/benchrestoration-config-*.json

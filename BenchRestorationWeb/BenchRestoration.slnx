@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BenchRestoration.Agent/BenchRestoration.Agent.csproj" />
+    <Project Path="src/BenchRestoration.Api/BenchRestoration.Api.csproj" />
+    <Project Path="src/BenchRestoration.Shared/BenchRestoration.Shared.csproj" />
+  </Folder>
+</Solution>

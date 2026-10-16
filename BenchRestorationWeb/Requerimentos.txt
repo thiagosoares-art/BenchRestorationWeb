@@ -1,0 +1,113 @@
+============================================================
+ BENCH RESTORATION WEB - PRÉ-REQUISITOS DO SISTEMA
+============================================================
+Documento de referência para a instalação via
+"InicializacaoBenchWeb.bat".
+
+------------------------------------------------------------
+1. SISTEMA
+------------------------------------------------------------
+- Windows Server 2019 x64 (ou superior: 2022, 2025)
+  (Windows 10/11 x64 também funcionam)
+- Conta com privilégios de Administrador
+  (o .bat precisa ser executado como Administrador)
+- Espaço em disco: ~1 GB livres no disco C:
+  - C:\BenchWebSource        (clone do repositório, ~200 MB)
+  - C:\BenchRestorationWeb   (publicação da aplicação, ~150 MB)
+  - node_modules, NuGet e artefatos de build durante a instalação
+- O banco de dados local é SQLite e fica em:
+  C:\BenchRestorationWeb\Data\BenchRestoration.db
+  (é criado automaticamente na primeira execução — não é
+  necessário instalar nenhum SGBD para o app funcionar)
+
+------------------------------------------------------------
+2. SOFTWARE (instalar antes de rodar o .bat)
+------------------------------------------------------------
+a) Git for Windows
+   - Versão 2.x ou superior, instalador x64
+   - https://git-scm.com/download/win
+   - Usado pelo .bat para clonar o repositório do GitHub
+
+b) .NET SDK 10 (LTS)
+   - Instalador x64 do SDK 10.x (o Runtime sozinho NÃO basta,
+     o SDK é necessário para o build)
+   - https://dotnet.microsoft.com/download
+   - O SDK 10 é compatível com Windows Server 2016 e posteriores
+
+c) Node.js 18 LTS ou superior
+   - Build LTS x64 (inclui o npm automaticamente)
+   - https://nodejs.org
+   - Usado para compilar o frontend (React + Vite)
+
+d) SQL Server ODBC Client / Command Line Tools (para backup/restore)
+   - Necessário para as operações de backup/restore de bancos
+     SQL Server através do sqlcmd. O próprio app procura o
+     sqlcmd nos caminhos padrão:
+       C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\180\Tools\Binn\
+       C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\
+       C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\
+   - Opções de instalação (qualquer uma que exponha o sqlcmd):
+     - "Command Line Utilities for SQL Server" (18.x, 17.x ou 13.x)
+       https://learn.microsoft.com/sql/tools/sql-server-command-line-tools-download
+     - Ou o instalador completo do SQL Server marcando o
+       feature "Command Line Utilities"
+   - Sem o sqlcmd o app funciona normalmente (frontend, login,
+     configuração de servidores), mas os jobs de
+     backup/restore de SQL Server não rodam.
+
+------------------------------------------------------------
+3. REDE
+------------------------------------------------------------
+a) Saída (outbound) da máquina para:
+   - https://github.com          (clone do repositório)
+   - https://registry.npmjs.org  (pacotes npm do frontend)
+   - https://api.nuget.org       (pacotes NuGet do .NET)
+   (somente durante a instalação — depois da publicação o app
+   não precisa de saída para esses domínios)
+
+b) Entrada (inbound) na máquina:
+   - Porta TCP 5263 (a API HTTP expõe apenas essa porta)
+   - O .bat cria a regra de firewall automaticamente
+     (nome da regra: "BenchRestorationApi 5263")
+
+c) Saída para os servidores SQL Server de destino:
+   - Porta TCP 1433 (ou a porta customizada de cada instância)
+   - Necessária somente para executar os jobs de
+     backup/restore nos bancos de destino.
+
+------------------------------------------------------------
+4. OBSERVAÇÕES IMPORTANTES
+------------------------------------------------------------
+- O repositório precisa estar PÚBLICO no GitHub para o
+  "git clone" do .bat funcionar sem credenciais.
+
+- O serviço Windows "BenchRestorationApi" roda como LocalSystem
+  (conta padrão do sc.exe create, sem StartName/Password).
+
+- A aplicação usa apenas a porta 5263 (HTTP, sem HTTPS).
+
+- O banco local (SQLite) é auto-criado em runtime em
+  C:\BenchRestorationWeb\Data\BenchRestoration.db.
+  Logs da API em C:\BenchRestorationWeb\Logs\api-*.log
+  (retenção de 30 dias).
+
+- As senhas de SQL Server cadastradas no app são criptografadas
+  com DPAPI (escopo LocalMachine). Por isso elas NÃO migram
+  entre máquinas: em um servidor novo é preciso recadastrar as
+  credenciais dos servidores SQL.
+
+- O build do frontend é OBRIGATÓRIO no servidor: os diretórios
+  wwwroot/ e node_modules/ estão no .gitignore e não fazem
+  parte do repositório. O .bat já executa "npm ci" e
+  "npm run build" automaticamente.
+
+- Não usar a flag "-q" com o "dotnet build/publish" no SDK 10:
+  há um bug documentado (MSB3492 /
+  GenerateTargetFrameworkMonikerAttribute) que faz o modo quiet
+  falhar mesmo com obj limpo. O .bat já trata isso.
+
+- Para ATUALIZAR a aplicação depois da instalação inicial, use
+  o update-main.bat (o InicializacaoBenchWeb.bat aborta se o
+  serviço já existir).
+
+============================================================
